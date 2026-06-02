@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Tabel User (Admin / Pelanggan)
+model User {
+  id        Int      @id @default(autoincrement())
+  nama      String
+  email     String   @unique
+  password  String
+  role      String   @default("Pelanggan")
+  orders    Order[]
+}
+
+// Tabel Daftar Pengirim
+model Pengirim {
+  id            Int      @id @default(autoincrement())
+  nama_pengirim String
+  no_telepon    String
+  alamat        String   @db.Text
+  kecamatan     String
+  kode_pos      String
+  is_utama      Boolean  @default(false)
+  orders        Order[]
+}
+
+// Tabel Daftar Penerima
+model Penerima {
+  id            Int      @id @default(autoincrement())
+  nama_penerima String
+  no_telepon    String
+  alamat        String   @db.Text
+  kecamatan     String
+  kode_pos      String
+  orders        Order[]
+}
+
+// Tabel Transaksi / Pesanan
+model Order {
+  id              Int      @id @default(autoincrement())
+  no_resi         String   @unique
+  tgl_pesanan     DateTime @default(now())
+  status          String   @default("Input") // Input, Pick-up, Proses, Selesai
+  layanan         String
+  total_bayar     Int
+  kota_asal       String   @default("-")
+  kota_tujuan     String   @default("-")
+  jenis_barang    String   @default("Umum")
+  catatan         String?  @db.Text
+  
+  // Relasi (Kunci ke tabel lain)
+  userId          Int
+  user            User     @relation(fields: [userId], references: [id])
+  
+  pengirimId      Int
+  pengirim        Pengirim @relation(fields: [pengirimId], references: [id])
+  
+  penerimaId      Int
+  penerima        Penerima @relation(fields: [penerimaId], references: [id])
+  
+  // Detail Barang
+  nama_barang     String
+  qty             Int
+  berat_kg        Float
+}
